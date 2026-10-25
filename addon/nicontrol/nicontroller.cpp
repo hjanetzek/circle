@@ -6,6 +6,8 @@
 #include <circle/usb/usbdevicefactory.h>
 #include <circle/usb/usbhid.h>
 #include <circle/usb/usbhostcontroller.h>
+#include <circle/usb/usbdevice.h>
+#include <circle/usb/usbstring.h>
 #include <circle/devicenameservice.h>
 #include <circle/synchronize.h>
 #include <circle/logger.h>
@@ -196,6 +198,21 @@ void CNIControllerDevice::ReportHandler (const u8 *pReport, unsigned nReportSize
 	}
 }
 
+// the manufacturer string is "Native Instruments" (open firmware keeps the IDs)
+boolean CNIControllerDevice::IsStockFirmware (CUSBDevice *pDevice)
+{
+	const TUSBDeviceDescriptor *pDesc = pDevice->GetDeviceDescriptor ();
+	if (   pDesc == 0
+	    || pDesc->iManufacturer == 0)
+	{
+		return FALSE;
+	}
+
+	CUSBString String (pDevice);
+	return    String.GetFromDescriptor (pDesc->iManufacturer, String.GetLanguageID ())
+	       && strcmp (String.Get (), "Native Instruments") == 0;
+}
+
 CUSBFunction *CNIControllerDevice::Factory (CUSBFunction *pParent, CString *pName)
 {
 	if (pName->Compare ("int3-0-0") != 0)
@@ -207,7 +224,8 @@ CUSBFunction *CNIControllerDevice::Factory (CUSBFunction *pParent, CString *pNam
 	assert (pVendor != 0);
 
 	CUSBFunction *pResult = 0;
-	if (pVendor->Compare ("ven17cc-1860") == 0)
+	if (   pVendor->Compare ("ven17cc-1860") == 0
+	    && IsStockFirmware (pParent->GetDevice ()))	// not e.g. My Kontrol
 	{
 		pResult = new CNIKompleteKontrolM32 (pParent);
 	}

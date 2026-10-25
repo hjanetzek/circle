@@ -17,6 +17,7 @@
 
 #include <circle/usb/usbhiddevice.h>
 #include <circle/usb/usbfunction.h>
+#include <circle/usb/usbdevice.h>
 #include <circle/numberpool.h>
 #include <circle/string.h>
 #include <circle/types.h>
@@ -90,6 +91,7 @@ private:
 	void ReportHandler (const u8 *pReport, unsigned nReportSize) override;
 
 	static CUSBFunction *Factory (CUSBFunction *pParent, CString *pName);
+	static boolean IsStockFirmware (CUSBDevice *pDevice);
 
 private:
 	unsigned m_nDeviceNumber;

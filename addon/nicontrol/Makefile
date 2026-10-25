@@ -4,7 +4,7 @@
 
 CIRCLEHOME = ../..
 
-OBJS	= nicontroller.o nikkm32.o
+OBJS	= nicontroller.o nikkm32.o mykontrol.o
 
 libnicontrol.a: $(OBJS)
 	@echo "  AR    $@"
