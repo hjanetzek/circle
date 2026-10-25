@@ -56,6 +56,22 @@
 #include <circle/usb/usbserialft231x.h>
 #include <circle/usb/usbtouchscreen.h>
 
+TUSBFunctionFactory *CUSBDeviceFactory::s_pFactory[MaxFactories];
+unsigned CUSBDeviceFactory::s_nFactories = 0;
+
+boolean CUSBDeviceFactory::RegisterFactory (TUSBFunctionFactory *pFactory)
+{
+	assert (pFactory != 0);
+	if (s_nFactories >= MaxFactories)
+	{
+		return FALSE;
+	}
+
+	s_pFactory[s_nFactories++] = pFactory;
+
+	return TRUE;
+}
+
 CUSBFunction *CUSBDeviceFactory::GetDevice (CUSBFunction *pParent, CString *pName)
 {
 	assert (pParent != 0);
@@ -72,6 +88,16 @@ CUSBFunction *CUSBDeviceFactory::GetDevice (CUSBFunction *pParent, CString *pNam
 	}
 
 	CUSBFunction *pResult = 0;
+
+	for (unsigned i = 0; i < s_nFactories; i++)
+	{
+		assert (s_pFactory[i] != 0);
+		pResult = (*s_pFactory[i]) (pParent, pName);
+		if (pResult != 0)
+		{
+			goto Found;
+		}
+	}
 
 	if (   pName->Compare ("int9-0-0") == 0
 	    || pName->Compare ("int9-0-2") == 0)
@@ -261,6 +287,7 @@ CUSBFunction *CUSBDeviceFactory::GetDevice (CUSBFunction *pParent, CString *pNam
 #endif
 	// new devices follow
 
+Found:
 	if (pResult != 0)
 	{
 		pResult->GetDevice ()->LogWrite (LogNotice, "Using device/interface %s", (const char *) *pName);

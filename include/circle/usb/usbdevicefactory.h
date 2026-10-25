@@ -32,16 +32,30 @@ struct TUSBDeviceID
 	u16	usDeviceID;
 };
 
+// an additional driver factory (e.g. from an addon): returns the driver for the
+// device/interface pParent with the name pName ("venXXXX-XXXX", "intX-X-X"),
+// or 0 if it does not handle it
+typedef CUSBFunction *TUSBFunctionFactory (CUSBFunction *pParent, CString *pName);
+
 class CUSBDeviceFactory
 {
 public:
 	static CUSBFunction *GetDevice (CUSBFunction *pParent, CString *pName);
+
+	// registered factories are asked before the built-in drivers;
+	// call before the USB host controller is initialized
+	static boolean RegisterFactory (TUSBFunctionFactory *pFactory);
 
 private:
 	// for "int3-0-0" devices
 	static CUSBFunction *GetGenericHIDDevice (CUSBFunction *pParent);
 
 	static boolean FindDeviceID (CString *pName, const TUSBDeviceID *pIDTable);
+
+private:
+	static const unsigned MaxFactories = 4;
+	static TUSBFunctionFactory *s_pFactory[MaxFactories];
+	static unsigned s_nFactories;
 };
 
 #endif
