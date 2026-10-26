@@ -6,7 +6,7 @@
 // LEDs and a monochrome display. Keys, knobs and strips of keyboards come
 // over their USB MIDI interface, which Circle's USB MIDI driver handles.
 //
-// Supported: Komplete Kontrol M32 (17cc:1860).
+// Supported: Komplete Kontrol M32 (17cc:1860), Maschine Jam (17cc:1500).
 //
 // Call CNIControllerDevice::RegisterDriver() before the USB host controller
 // is initialized. A connected controller is "nictlN" in the device name
@@ -25,7 +25,9 @@
 enum TNIEventType
 {
 	NIEventButton,		// nControl: model specific button, nValue: 1 pressed, 0 released
-	NIEventEncoder		// nControl: model specific encoder, nValue: steps (signed)
+	NIEventEncoder,		// nControl: model specific encoder, nValue: steps (signed)
+	NIEventStrip		// nControl: model specific touch strip, nValue: position
+				// (model specific range), -1 released
 };
 
 struct TNIEvent
@@ -40,7 +42,8 @@ class CNIControllerDevice : public CUSBHIDDevice
 public:
 	enum TModel
 	{
-		ModelKompleteKontrolM32
+		ModelKompleteKontrolM32,
+		ModelMaschineJam
 	};
 
 public:
@@ -80,6 +83,8 @@ protected:
 	virtual void DecodeReport (const u8 *pReport, unsigned nLength) = 0;
 	virtual boolean SendLEDs (const u8 *pBrightness) = 0;
 	virtual boolean SendDisplay (const u8 *pPages) = 0;	// [page][x], bit 0 = top row
+	// sends changed model specific outputs (e.g. RGB LEDs), from Update()
+	virtual void UpdateModel (void)	{}
 
 	void PostEvent (TNIEventType Type, unsigned nControl, int nValue);	// from DecodeReport()
 

@@ -3,6 +3,7 @@
 //
 #include <nicontrol/nicontroller.h>
 #include <nicontrol/nikkm32.h>
+#include <nicontrol/nimaschinejam.h>
 #include <circle/usb/usbdevicefactory.h>
 #include <circle/usb/usbhid.h>
 #include <circle/usb/usbhostcontroller.h>
@@ -144,6 +145,8 @@ void CNIControllerDevice::Update (void)
 	{
 		m_bDisplayChanged = !SendDisplay (m_pDisplay);
 	}
+
+	UpdateModel ();
 }
 
 void CNIControllerDevice::RegisterDriver (void)
@@ -228,6 +231,10 @@ CUSBFunction *CNIControllerDevice::Factory (CUSBFunction *pParent, CString *pNam
 	    && IsStockFirmware (pParent->GetDevice ()))	// not e.g. My Kontrol
 	{
 		pResult = new CNIKompleteKontrolM32 (pParent);
+	}
+	else if (pVendor->Compare ("ven17cc-1500") == 0)
+	{
+		pResult = new CNIMaschineJam (pParent);
 	}
 
 	delete pVendor;
